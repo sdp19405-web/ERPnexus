@@ -16,6 +16,7 @@ export interface Lead {
   contact: string;
   phone: string;
   email: string;
+  score?: number;
   industry: string;
   stage: 'New' | 'Qualified' | 'Proposal' | 'Negotiation' | 'Closed Won' | 'Lost';
   value: string;
@@ -35,6 +36,7 @@ export interface Customer {
   name: string;
   type: 'Individual' | 'Organization' | 'Reseller' | 'Distributor';
   email: string;
+  score?: number;
   phone: string;
   address: string;
   city: string;
@@ -115,6 +117,53 @@ export interface ServiceTicket {
 }
 
 // PROCUREMENT MODULE TYPES
+
+export interface DocumentRecord {
+  id: string;
+  title: string;
+  category: string;
+  uploadedBy: string;
+  size: string;
+  version: string;
+  status: 'Active' | 'Archived';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ITAsset {
+  id: string;
+  name: string;
+  type: string;
+  assignedTo: string;
+  purchaseDate: string;
+  status: 'In Use' | 'Available' | 'Maintenance' | 'Retired';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MaintenanceRecord {
+  id: string;
+  assetId: string;
+  issue: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  assignedTo: string;
+  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupplyChainRecord {
+  id: string;
+  shipmentId: string;
+  origin: string;
+  destination: string;
+  carrier: string;
+  status: 'In Transit' | 'Delivered' | 'Delayed' | 'Pending';
+  eta: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Vendor {
   id: string;
   name: string;
@@ -324,6 +373,7 @@ export interface Employee {
   id: string;
   name: string;
   email: string;
+  score?: number;
   phone: string;
   dept: string;
   role: string;
@@ -546,13 +596,13 @@ class DataService<T extends { id?: string; createdAt?: string; updatedAt?: strin
     if (index === -1) return undefined;
 
     const oldRecord = { ...this.records[index] };
-    const changes: Record<string, { oldValue: any; newValue: any }> = {};
+    const changes: Record<string, { old: any; new: any }> = {};
 
     Object.keys(data).forEach(key => {
       if ((data as any)[key] !== (this.records[index] as any)[key]) {
         changes[key] = {
-          oldValue: (this.records[index] as any)[key],
-          newValue: (data as any)[key]
+          old: (this.records[index] as any)[key],
+          new: (data as any)[key]
         };
       }
     });
@@ -751,6 +801,20 @@ export class SalesOrderService extends DataService<SalesOrder> {
   getOrdersByStatus(status: SalesOrder['status']): SalesOrder[] {
     return this.records.filter(order => order.status === status);
   }
+}
+
+
+export class DocumentService extends DataService<DocumentRecord> {
+  constructor() { super('erp_documents'); }
+}
+export class ITAssetService extends DataService<ITAsset> {
+  constructor() { super('erp_it_assets'); }
+}
+export class MaintenanceService extends DataService<MaintenanceRecord> {
+  constructor() { super('erp_maintenance'); }
+}
+export class SupplyChainService extends DataService<SupplyChainRecord> {
+  constructor() { super('erp_supply_chain'); }
 }
 
 export class VendorService extends DataService<Vendor> {
@@ -1184,7 +1248,22 @@ export class TaskService extends DataService<ProjectTask> {
 // GLOBAL SERVICE REGISTRY
 // ═════════════════════════════════════════════════════════════════════════════
 
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  modules: string;
+  createdAt: string;
+}
+export class RoleService extends DataService<Role> { constructor() { super("erp_roles"); } }
+export class GLAccountService extends DataService<GLAccount> { constructor() { super("erp_gl_accounts"); } }
+export class PaymentService extends DataService<Payment> { constructor() { super("erp_payments"); } }
+
 export const erpServices = {
+  documents: new DocumentService(),
+  itAssets: new ITAssetService(),
+  maintenance: new MaintenanceService(),
+  supplyChain: new SupplyChainService(),
   sales: new SalesService(),
   customers: new CustomerService(),
   salesOrders: new SalesOrderService(),
@@ -1201,7 +1280,10 @@ export const erpServices = {
   leaves: new LeaveService(),
   payroll: new PayrollService(),
   projects: new ProjectService(),
-  tasks: new TaskService()
+  tasks: new TaskService(),
+  glAccounts: new GLAccountService(),
+  payments: new PaymentService(),
+  roles: new RoleService()
 };
 
 export default erpServices;

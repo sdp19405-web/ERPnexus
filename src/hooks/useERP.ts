@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import {
   Lead, Customer, SalesOrder, Vendor, PurchaseOrder, InventoryItem,
   StockTransaction, WorkOrder, Inspection, CAPA, Invoice, Employee,
-  Attendance, LeaveRequest, Payroll, Project, ProjectTask, Activity
+  Attendance, LeaveRequest, Payroll, Project, ProjectTask, Activity,
+  GLAccount, Payment, Role
 } from '../services/erpDataServices';
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -356,43 +357,27 @@ export function usePayroll(service: any) {
 
 export function useProjects(service: any) {
   const crud = useCRUD<Project>(service);
-
-  const updateProgress = useCallback((projectId: string, progress: number) => {
-    return crud.update(projectId, { progress: Math.min(100, progress) });
-  }, [crud]);
-
-  const getOnTrackProjects = useCallback(() => {
-    return crud.data.filter(p => p.status === 'On Track');
-  }, [crud.data]);
-
-  return {
-    ...crud,
-    updateProgress,
-    getOnTrackProjects
-  };
+  return { ...crud };
 }
 
 export function useTasks(service: any) {
   const crud = useCRUD<ProjectTask>(service);
+  return { ...crud };
+}
 
-  const getTasksByStatus = useCallback((status: ProjectTask['status']) => {
-    return crud.data.filter(t => t.status === status);
-  }, [crud.data]);
+export function useGLAccounts(service: any) {
+  const crud = useCRUD<GLAccount>(service);
+  return { ...crud };
+}
 
-  const startTask = useCallback((taskId: string) => {
-    return crud.update(taskId, { status: 'In Progress', startDate: new Date().toISOString().split('T')[0] });
-  }, [crud]);
+export function usePayments(service: any) {
+  const crud = useCRUD<Payment>(service);
+  return { ...crud };
+}
 
-  const completeTask = useCallback((taskId: string) => {
-    return crud.update(taskId, { status: 'Done', completedDate: new Date().toISOString() });
-  }, [crud]);
-
-  return {
-    ...crud,
-    getTasksByStatus,
-    startTask,
-    completeTask
-  };
+export function useRoles(service: any) {
+  const crud = useCRUD<Role>(service);
+  return { ...crud };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -736,6 +721,9 @@ export default {
   usePayroll,
   useProjects,
   useTasks,
+  useGLAccounts,
+  usePayments,
+  useRoles,
   useSearch,
   useFilter,
   useSort,
@@ -745,3 +733,9 @@ export default {
   useConfirmDialog,
   useNotification
 };
+
+
+export function useDocuments(service: any) { return useCRUD<import('../services/erpDataServices').DocumentRecord>(service); }
+export function useITAssets(service: any) { return useCRUD<import('../services/erpDataServices').ITAsset>(service); }
+export function useMaintenance(service: any) { return useCRUD<import('../services/erpDataServices').MaintenanceRecord>(service); }
+export function useSupplyChain(service: any) { return useCRUD<import('../services/erpDataServices').SupplyChainRecord>(service); }
